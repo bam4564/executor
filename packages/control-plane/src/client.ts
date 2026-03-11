@@ -12,28 +12,19 @@ import { ControlPlaneAuthHeaders } from "./auth-headers";
 export const createControlPlaneClient = (input: {
   baseUrl: string;
   accountId?: string;
-  apiKey?: string;
 }) => {
-  const headers = {
-    ...(input.accountId
-      ? {
-          [ControlPlaneAuthHeaders.accountId]: input.accountId,
-        }
-      : {}),
-    ...(input.apiKey
-      ? {
-          authorization: `Bearer ${input.apiKey}`,
-        }
-      : {}),
-  };
+  const accountId = input.accountId;
 
   return HttpApiClient.make(ControlPlaneApi, {
     baseUrl: input.baseUrl,
-    transformClient: Object.keys(headers).length > 0
+    transformClient: accountId
       ? (client) =>
           client.pipe(
-            HttpClient.mapRequest((request) =>
-              HttpClientRequest.setHeaders(request, headers)
+            HttpClient.mapRequest(
+              HttpClientRequest.setHeader(
+                ControlPlaneAuthHeaders.accountId,
+                accountId,
+              ),
             ),
           )
       : undefined,
